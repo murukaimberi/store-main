@@ -1,0 +1,32 @@
+name: Build and run tests on pull request creation
+on:
+  push:
+
+jobs:
+  build:
+    name: Build and run tests
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: gradle
+      - name: Code vulnerability scan
+        uses: anchore/scan-action@v3
+        id: scan
+        with:
+          path: "${{ github.workspace }}"
+          fail-build: false
+          severity-cutoff: 'high'
+          acs-report-enabled: true
+      - name: Build and run tests
+        run: |
+          chmod +x gradlew
+          ./gradlew test

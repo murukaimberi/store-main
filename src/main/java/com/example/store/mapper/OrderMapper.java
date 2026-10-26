@@ -13,6 +13,8 @@ import java.util.List;
 public interface OrderMapper {
     OrderDTO orderToOrderDTO(Order order);
 
+    Order orderDTOToOrder(OrderDTO orderDTO);
+
     List<OrderDTO> ordersToOrderDTOs(List<Order> orders);
 
     OrderCustomerDTO orderToOrderCustomerDTO(Customer customer);

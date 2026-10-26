@@ -2,32 +2,34 @@ package com.example.store.controller;
 
 import com.example.store.entity.Customer;
 import com.example.store.entity.Order;
-import com.example.store.mapper.CustomerMapper;
 import com.example.store.repository.CustomerRepository;
 import com.example.store.repository.OrderRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import jakarta.transaction.Transactional;
+
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.List;
-import java.util.Optional;
-
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(OrderController.class)
-@ComponentScan(basePackageClasses = CustomerMapper.class)
+@SpringBootTest(properties = "spring.liquibase.contexts=test")
+@Import(PostgresqlConfiguration.class)
+@AutoConfigureMockMvc
 @RequiredArgsConstructor
+@Slf4j
+@Transactional
 class OrderControllerTests {
 
     @Autowired
@@ -36,10 +38,10 @@ class OrderControllerTests {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockitoBean
+    @Autowired
     private OrderRepository orderRepository;
 
-    @MockitoBean
+    @Autowired
     private CustomerRepository customerRepository;
 
     private Order order;
@@ -47,21 +49,19 @@ class OrderControllerTests {
 
     @BeforeEach
     void setUp() {
+        customerRepository.deleteAll();
         customer = new Customer();
         customer.setName("John Doe");
-        customer.setId(1L);
+        customer = customerRepository.save(customer);
 
         order = new Order();
         order.setDescription("Test Order");
-        order.setId(1L);
         order.setCustomer(customer);
+        order = orderRepository.save(order);
     }
 
     @Test
     void testCreateOrder() throws Exception {
-        when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
-        when(orderRepository.save(order)).thenReturn(order);
-
         mockMvc.perform(post("/order")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(order)))
@@ -72,11 +72,23 @@ class OrderControllerTests {
 
     @Test
     void testGetOrder() throws Exception {
-        when(orderRepository.findAll()).thenReturn(List.of(order));
-
         mockMvc.perform(get("/order"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$..description").value("Test Order"))
                 .andExpect(jsonPath("$..customer.name").value("John Doe"));
+    }
+
+    @Test
+    void whenGetOrder_OrderDoesNotExist_ThrowException() throws Exception {
+        mockMvc.perform(get("/order/999")).andExpect(status().isNotFound()).andDo(print());
+    }
+
+    @Test
+    void whenGetOrder_OrderExists_ReturnOrder() throws Exception {
+        mockMvc.perform(get("/order/" + order.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.description").value("Test Order"))
+                .andExpect(jsonPath("$.customer.name").value("John Doe"))
+                .andDo(print());
     }
 }

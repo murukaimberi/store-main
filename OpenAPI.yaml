@@ -51,6 +51,28 @@ paths:
                   format: int64
                 descriptioon:
                   type: string
+  /order/{id}:
+    get:
+      summary: Get order by id
+      tags:
+        - store
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the order to fetch
+          schema:
+            type: integer
+            format: int64
+      operationId: getOrderById
+      description: Get order by id
   /customer:
     get:
       summary: Get Customers
@@ -87,6 +109,30 @@ paths:
                   format: int64
                 name:
                   type: string
+  /customer/search:
+    get:
+      summary: Search customers
+      tags:
+        - store
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Customer'
+      operationId: searchCustomers
+      description: Search customers
+      parameters:
+        - name: name
+          in: query
+          description: Customer name
+          required: false
+          schema:
+            type: string
+
   /products:
     get:
       summary: Get Products

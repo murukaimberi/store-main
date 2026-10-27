@@ -1,13 +1,12 @@
 package com.example.store.controller;
 
 import com.example.store.dto.CustomerDTO;
-import com.example.store.entity.Customer;
-import com.example.store.mapper.CustomerMapper;
-import com.example.store.repository.CustomerRepository;
 
+import com.example.store.service.CustomerService;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,17 +16,21 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CustomerController {
 
-    private final CustomerRepository customerRepository;
-    private final CustomerMapper customerMapper;
+    private final CustomerService customerService;
 
     @GetMapping
-    public List<CustomerDTO> getAllCustomers() {
-        return customerMapper.customersToCustomerDTOs(customerRepository.findAll());
+    public ResponseEntity<List<CustomerDTO>> getAllCustomers() {
+        return ResponseEntity.ok(customerService.getAllCustomers());
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<CustomerDTO>> getCustomerByName(@RequestParam String name) {
+        return ResponseEntity.ok(customerService.getCustomerByName(name));
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public CustomerDTO createCustomer(@RequestBody Customer customer) {
-        return customerMapper.customerToCustomerDTO(customerRepository.save(customer));
+    public ResponseEntity<CustomerDTO> createCustomer(@RequestBody CustomerDTO customer) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(customerService.createCustomer(customer));
     }
 }

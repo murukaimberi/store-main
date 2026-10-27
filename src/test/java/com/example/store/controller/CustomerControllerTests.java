@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -71,10 +72,7 @@ class CustomerControllerTests {
     void testGetAllCustomers() throws Exception {
         mockMvc.perform(get("/customer"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$..name").value("John Doe"))
-                .andExpect(jsonPath("$..name").value("Jane Doe"))
-        ;
-        ;
+                .andExpect(jsonPath("$[*].name", containsInAnyOrder("John Doe", "Jane Doe")));
     }
 
     @Test

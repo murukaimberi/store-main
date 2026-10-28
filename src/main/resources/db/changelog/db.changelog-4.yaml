@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4-indexes
+      author: developer@securitease.com
+      changes:
+        - sqlFile:
+            path: db/changelog/sql/customer-indexing.sql

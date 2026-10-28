@@ -1,14 +1,15 @@
 package com.example.store.service;
 
 import com.example.store.dto.OrderDTO;
+import com.example.store.dto.PaginatedResponse;
+import com.example.store.request.CreateOrderRequest;
 
-import java.util.List;
-import java.util.Optional;
+import org.springframework.data.domain.Pageable;
 
 public interface OrderService {
-    OrderDTO createOrder(OrderDTO orderDTO);
+    OrderDTO createOrder(final CreateOrderRequest request);
 
-    List<OrderDTO> getAllOrders();
+    PaginatedResponse<OrderDTO> getAllOrders(final Pageable pageable);
 
-    Optional<OrderDTO> getOrderById(Long id);
+    OrderDTO getOrderById(Long id);
 }

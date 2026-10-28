@@ -1,15 +1,18 @@
 package com.example.store.controller;
 
 import com.example.store.dto.OrderDTO;
+import com.example.store.dto.PaginatedResponse;
+import com.example.store.request.CreateOrderRequest;
 import com.example.store.service.OrderService;
+
+import jakarta.validation.Valid;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/order")
@@ -19,21 +22,17 @@ public class OrderController {
     private final OrderService orderService;
 
     @GetMapping
-    public ResponseEntity<List<OrderDTO>> getAllOrders() {
-        return ResponseEntity.ok().body(orderService.getAllOrders());
+    public ResponseEntity<PaginatedResponse<OrderDTO>> getAllOrders(final Pageable pageable) {
+        return ResponseEntity.ok().body(orderService.getAllOrders(pageable));
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<OrderDTO> createOrder(@RequestBody OrderDTO orderDTO) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(orderService.createOrder(orderDTO));
+    public ResponseEntity<OrderDTO> createOrder(@RequestBody @Valid final CreateOrderRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(orderService.createOrder(request));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<OrderDTO> getOrder(@PathVariable Long id) {
-        return orderService
-                .getOrderById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.ok().body(orderService.getOrderById(id));
     }
 }

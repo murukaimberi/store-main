@@ -34,8 +34,10 @@ spotless {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
     runtimeOnly 'org.postgresql:postgresql'
     implementation 'org.liquibase:liquibase-core'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
@@ -60,11 +62,49 @@ tasks.named('test') {
     finalizedBy tasks.jacocoTestReport
 }
 
+tasks.register('integrationTest', Test) {
+    useJUnitPlatform()
+    include '**/*IT.class'
+    shouldRunAfter tasks.test
+}
+
+tasks.named('check') {
+    dependsOn tasks.integrationTest
+    dependsOn tasks.jacocoTestCoverageVerification
+}
+
 tasks.jacocoTestReport {
-    dependsOn tasks.test // Ensure tests run before generating the report
+    dependsOn tasks.test, tasks.integrationTest // Ensure tests run before generating the report
+    executionData tasks.test, tasks.integrationTest
 
     reports {
         html.required.set(true)
+        xml.required.set(true)
+    }
+    afterEvaluate {
+        classDirectories = files(classDirectories.files.collect {
+            fileTree(dir: it,
+                    exclude: ['**/mapper/**', '**/StoreApplication.class'])
+        })
+    }
+}
+
+tasks.jacocoTestCoverageVerification {
+    dependsOn tasks.jacocoTestReport
+    executionData tasks.test, tasks.integrationTest
+    violationRules {
+        rule {
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.95
+            }
+            limit {
+                counter = 'BRANCH'
+                value = 'COVEREDRATIO'
+                minimum = 0.95
+            }
+        }
     }
     afterEvaluate {
         classDirectories = files(classDirectories.files.collect {

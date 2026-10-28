@@ -4,5 +4,10 @@ databaseChangeLog:
       author: developer@securitease.com
       changes:
         - sqlFile:
-            path: db/changelog/data.sql
-      context: "!test"
+            path: db/changelog/sql/data.sql
+  - changeSet:
+      id: 2-sequence-reset
+      author: developer@securitease.com
+      changes:
+        - sqlFile:
+            path: db/changelog/sql/sequence-reset.sql
